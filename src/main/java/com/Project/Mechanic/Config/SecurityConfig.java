@@ -71,11 +71,12 @@ public class SecurityConfig {
             .csrf(csrf -> csrf.disable())
     		.cors(cors -> cors.configurationSource(corsConfigurationSource()))
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/api/auth/**",
-                		"/v3/api-docs/**",
-                        "/swagger-ui/**",
-                        "/swagger-ui.html").permitAll() 
-                .anyRequest().authenticated()
+//                .requestMatchers("/api/auth/**",
+//                		"/v3/api-docs/**",
+//                        "/swagger-ui/**",
+//                        "/swagger-ui.html",
+//                        "/api/mechanic/**").permitAll() 
+                .anyRequest().permitAll()
             )
             .sessionManagement(session -> session
                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
