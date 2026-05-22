@@ -1,5 +1,6 @@
 package com.Project.Mechanic.Controller;
 
+import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.web.bind.annotation.*;
 import lombok.RequiredArgsConstructor;
@@ -14,7 +15,7 @@ public class TrackingController {
     private final SimpMessagingTemplate messagingTemplate;
     private final JwtService jwtService;
 
-    @PostMapping("/mechanic-location")
+    @MessageMapping("/mechanic/location")
     public void updateMechanicLocation(@RequestBody LocationUpdateDTO location,
     									@RequestHeader("Authorization") String token) {
         
