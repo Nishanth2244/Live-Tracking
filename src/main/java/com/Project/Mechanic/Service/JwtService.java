@@ -74,4 +74,8 @@ public class JwtService {
         byte[] keyBytes = Decoders.BASE64.decode(SECRET_KEY);
         return Keys.hmacShaKeyFor(keyBytes); // Returns SecretKey directly
     }
+    
+    public Long extractUserId(String token) {
+        return ((Number) extractClaim(token, claims -> claims.get("userId"))).longValue();
+    }
 }

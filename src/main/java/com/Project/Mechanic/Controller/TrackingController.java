@@ -4,6 +4,7 @@ import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.web.bind.annotation.*;
 import lombok.RequiredArgsConstructor;
 import com.Project.Mechanic.DTO.LocationUpdateDTO;
+import com.Project.Mechanic.Service.JwtService;
 
 @RestController
 @RequestMapping("/api/tracking")
@@ -11,13 +12,16 @@ import com.Project.Mechanic.DTO.LocationUpdateDTO;
 public class TrackingController {
 
     private final SimpMessagingTemplate messagingTemplate;
+    private final JwtService jwtService;
 
     @PostMapping("/mechanic-location")
-    public void updateMechanicLocation(@RequestBody LocationUpdateDTO location) {
+    public void updateMechanicLocation(@RequestBody LocationUpdateDTO location,
+    									@RequestHeader("Authorization") String token) {
         
+    	Long mechanicId = jwtService.extractUserId(token.substring(7));
         String destination = "/topic/user/" + location.getUserId();
         
-        System.out.println("📍 Routing location from Mechanic " + location.getMechanicId() + " to User " + location.getUserId());
+        System.out.println("📍 Routing location from Mechanic " + mechanicId + " to User " + location.getUserId());
         
         messagingTemplate.convertAndSend(destination, location);
     }

@@ -11,6 +11,7 @@ import com.Project.Mechanic.DTO.MechanicRegistrationDto;
 import com.Project.Mechanic.DTO.UserRegistrationDto;
 import com.Project.Mechanic.Entity.Roles;
 import com.Project.Mechanic.Entity.Users;
+import com.Project.Mechanic.ExceptionHandler.ConflictException;
 import com.Project.Mechanic.Repo.UserRepository;
 
 import lombok.RequiredArgsConstructor;
@@ -24,7 +25,7 @@ public class AuthService {
 
     public String registerUser(UserRegistrationDto dto) {
         if (userRepository.findByEmail(dto.getEmail()).isPresent()) {
-            throw new RuntimeException("Email already exists.");
+            throw new ConflictException("Email already exists.");
         }
 
         Users user = new Users();
@@ -40,7 +41,7 @@ public class AuthService {
     
     public String registerMechanic(MechanicRegistrationDto dto) {
         if (userRepository.findByEmail(dto.getEmail()).isPresent()) {
-            throw new RuntimeException("Email already exists.");
+            throw new ConflictException("Email already exists.");
         }
 
         Users mechanic = new Users();

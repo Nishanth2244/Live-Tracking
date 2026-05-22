@@ -29,10 +29,10 @@ public class BookingService {
 	private final SimpMessagingTemplate messagingTemplate;
 	private final UserRepository userRepository;
 
-	public void booking(BookingRequestDTO bookingRequestDTO) {
+	public void booking(BookingRequestDTO bookingRequestDTO, Long userId) {
 		
 		Booking booking = new Booking();
-		booking.setUserId(bookingRequestDTO.getUserId());
+		booking.setUserId(userId);
 		booking.setMechanicId(bookingRequestDTO.getMechanicId());
 		booking.setProblem(bookingRequestDTO.getProblem());
 		booking.setStatus(BookingStatus.PENDING);
