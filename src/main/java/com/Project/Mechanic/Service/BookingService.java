@@ -64,7 +64,7 @@ public class BookingService {
 		String destination = "/topic/mechanic/"+ bookingRequestDTO.getMechanicId();
 		
 		log.info("PUSHING NOTIFICATION TO THIS EXACT LOCATION {}", destination);
-		messagingTemplate.convertAndSend(destination, "NEW_REQUEST:" + dto);				
+		messagingTemplate.convertAndSend(destination, dto);				
 		
 	}
 
@@ -97,7 +97,7 @@ public class BookingService {
 	            .status(BookingStatus.ACCEPTED.name())
 	            .build();
 	    
-	    String userDestination = "/topic/user/" + booking.getUserId();
+	    String userDestination = "/topic/user/booking/" + booking.getUserId();
 	    messagingTemplate.convertAndSend(userDestination, dto);
 	    log.info("Booking Confirmation Notification sent to User");
 

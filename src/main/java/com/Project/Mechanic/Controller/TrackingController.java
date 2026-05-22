@@ -19,7 +19,7 @@ public class TrackingController {
     									@RequestHeader("Authorization") String token) {
         
     	Long mechanicId = jwtService.extractUserId(token.substring(7));
-        String destination = "/topic/user/" + location.getUserId();
+        String destination = "/topic/user/tracking/" + location.getUserId();
         
         System.out.println("📍 Routing location from Mechanic " + mechanicId + " to User " + location.getUserId());
         
