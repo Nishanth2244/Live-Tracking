@@ -99,7 +99,7 @@ public class BookingService {
 	    
 	    String userDestination = "/topic/user/booking/" + booking.getUserId();
 	    messagingTemplate.convertAndSend(userDestination, dto);
-	    log.info("Booking Confirmation Notification sent to User");
+	    log.info("Booking Confirmation Notification sent to User via {}", userDestination);
 
 		return "Booking Accepted! You are now assigned to this request.";
 	}
@@ -138,7 +138,7 @@ public class BookingService {
 	            .problem("Total Bill: Rs. 500 (Pay via Razorpay)")
 	            .build();
 	            
-	    String userDestination = "/topic/user/" + booking.getUserId();
+	    String userDestination = "/topic/user/complete/" + booking.getUserId();
 	    messagingTemplate.convertAndSend(userDestination, dto);
 	    log.info("Service completed sent notification to User");
 	    return "Booking Completed! You are now available for new requests.";
