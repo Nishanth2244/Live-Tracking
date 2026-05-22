@@ -12,6 +12,7 @@ import com.Project.Mechanic.DTO.BookingRequestDTO;
 import com.Project.Mechanic.Entity.Booking;
 import com.Project.Mechanic.Entity.BookingStatus;
 import com.Project.Mechanic.Entity.Users;
+import com.Project.Mechanic.ExceptionHandler.ConflictException;
 import com.Project.Mechanic.Repo.BookingRepository;
 import com.Project.Mechanic.Repo.UserRepository;
 
@@ -113,7 +114,7 @@ public class BookingService {
 	            .orElseThrow(() -> new RuntimeException("Booking not found"));
 	            
 	    if (booking.getStatus() != BookingStatus.ACCEPTED && booking.getStatus() != BookingStatus.IN_PROGRESS) {
-	        throw new RuntimeException("Cannot complete this booking. Invalid state: " + booking.getStatus());
+	        throw new ConflictException("Cannot complete this booking. Invalid state: " + booking.getStatus());
 	    }
 	    
 	    if (!booking.getMechanicId().equals(mechanicId)) {
