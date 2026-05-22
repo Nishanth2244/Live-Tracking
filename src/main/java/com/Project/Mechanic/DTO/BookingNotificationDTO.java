@@ -14,4 +14,6 @@ public class BookingNotificationDTO {
     private String status;
     private double latitude;
     private double longitude;
+    private Double totalAmount;
+    private String billingDetails;
 }

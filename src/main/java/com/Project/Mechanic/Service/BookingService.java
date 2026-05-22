@@ -7,12 +7,15 @@ import org.locationtech.jts.geom.PrecisionModel;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 
+import com.Project.Mechanic.DTO.BillRequestDTO;
 import com.Project.Mechanic.DTO.BookingNotificationDTO;
 import com.Project.Mechanic.DTO.BookingRequestDTO;
 import com.Project.Mechanic.Entity.Booking;
 import com.Project.Mechanic.Entity.BookingStatus;
 import com.Project.Mechanic.Entity.Users;
 import com.Project.Mechanic.ExceptionHandler.ConflictException;
+import com.Project.Mechanic.ExceptionHandler.ResourceNotFoundException;
+import com.Project.Mechanic.ExceptionHandler.UnauthorizedException;
 import com.Project.Mechanic.Repo.BookingRepository;
 import com.Project.Mechanic.Repo.UserRepository;
 
@@ -105,6 +108,48 @@ public class BookingService {
 	}
 	
 	
+	
+	@Transactional
+	public String generateBill(BillRequestDTO dto, Long mechanicId) {
+		
+		Booking booking = bookingRepository.findById(dto.getBookingId())
+				.orElseThrow(() -> new ResourceNotFoundException("Booking Id not found to generate Bill"));
+		
+		if(!booking.getMechanicId().equals(mechanicId)) {
+			throw new UnauthorizedException("You are not authorized to generate bill");
+		}
+		
+		
+		// Calculation & Save
+	    double total = (dto.getServiceCharge() != null ? dto.getServiceCharge() : 0) +
+	                   (dto.getPartsCost() != null ? dto.getPartsCost() : 0) +
+	                   (dto.getExtraCharges() != null ? dto.getExtraCharges() : 0);
+	    
+	    booking.setServiceCharge(dto.getServiceCharge());
+	    booking.setPartsCost(dto.getPartsCost());
+	    booking.setExtraCharges(dto.getExtraCharges());
+	    booking.setBillingDetails(dto.getBillingDetails());
+	    booking.setTotalAmount(total);
+	    
+	    bookingRepository.save(booking);
+	    
+	    BookingNotificationDTO notification = BookingNotificationDTO.builder()
+	            .bookingId(booking.getId())
+	            .userId(booking.getUserId())
+	            .mechanicId(mechanicId)
+	            .status("BILL_GENERATED") 
+	            .problem("Bill Generated: " + dto.getBillingDetails())
+	            .totalAmount(total)
+	            .build();
+
+	    String userDestination = "/topic/user/billGenerate/" + booking.getUserId();
+	    messagingTemplate.convertAndSend(userDestination, notification);
+	    log.info("Bill sent to User via {}", userDestination);
+
+	    return "Bill generated and sent to user for Rs. " + total;
+	}
+
+	
 
 
 	@Transactional
@@ -135,7 +180,7 @@ public class BookingService {
 	            .userId(booking.getUserId())
 	            .mechanicId(mechanicId)
 	            .status(BookingStatus.COMPLETED.name())
-	            .problem("Total Bill: Rs. 500 (Pay via Razorpay)")
+	            .problem("Thank you for choosing our Mechanics! Your service is successfully completed.") 
 	            .build();
 	            
 	    String userDestination = "/topic/user/complete/" + booking.getUserId();
@@ -143,5 +188,6 @@ public class BookingService {
 	    log.info("Service completed sent notification to User");
 	    return "Booking Completed! You are now available for new requests.";
 	}
+	
 
 }

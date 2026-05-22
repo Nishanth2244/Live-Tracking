@@ -25,6 +25,12 @@ public class Booking {
 
     private LocalDateTime createdAt;
     
+    private Double serviceCharge;
+    private Double partsCost;
+    private Double extraCharges;
+    private Double totalAmount;
+    private String billingDetails;
+    
     @PrePersist
     protected void onCreate() {
         createdAt = LocalDateTime.now();

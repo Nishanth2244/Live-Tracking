@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.Project.Mechanic.DTO.BillRequestDTO;
 import com.Project.Mechanic.DTO.BookingRequestDTO;
 import com.Project.Mechanic.Service.BookingService;
 import com.Project.Mechanic.Service.JwtService;
@@ -45,6 +46,13 @@ public class BookingController {
 		return bookingService.accept(bookingId, mechanicId);
 	}
 	
+
+	@PostMapping("/generate-bill")
+	public String generateBill(@RequestBody BillRequestDTO dto, 
+								@RequestHeader("Authorization") String token) {
+	    Long mechanicId = jwtService.extractUserId(token.substring(7));
+	    return bookingService.generateBill(dto, mechanicId);
+	}
 	
 	
 	@PatchMapping("/complete/{bookingId}")
