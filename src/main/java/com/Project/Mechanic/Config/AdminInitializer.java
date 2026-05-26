@@ -29,6 +29,7 @@ public class AdminInitializer implements CommandLineRunner {
 			users.setPassword(passwordEncoder.encode("admin@123"));
 			users.setApprovalStatus(true);
 			users.setRoles(Roles.ADMIN);
+			users.setIsAvailable(true);
 			
 			userRepository.save(users);
 			

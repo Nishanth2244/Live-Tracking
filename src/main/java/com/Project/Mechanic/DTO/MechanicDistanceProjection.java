@@ -8,4 +8,5 @@ public interface MechanicDistanceProjection {
     Double getLatitude();
     Double getLongitude();
     Double getDistance();
+    String getExperience();
 }

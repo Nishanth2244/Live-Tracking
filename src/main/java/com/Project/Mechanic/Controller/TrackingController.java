@@ -13,7 +13,6 @@ import com.Project.Mechanic.Service.JwtService;
 
 @Slf4j
 @RestController
-@RequestMapping("/api/tracking")
 @RequiredArgsConstructor
 public class TrackingController {
 

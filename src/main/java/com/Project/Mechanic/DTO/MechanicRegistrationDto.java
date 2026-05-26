@@ -11,4 +11,6 @@ public class MechanicRegistrationDto {
     private String phone;
     private double latitude;
     private double longitude;
+    private String experience;
+
 }

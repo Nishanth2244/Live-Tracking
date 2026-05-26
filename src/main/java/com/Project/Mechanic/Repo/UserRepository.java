@@ -1,6 +1,7 @@
 package com.Project.Mechanic.Repo;
 
 import com.Project.Mechanic.DTO.MechanicDistanceProjection;
+import com.Project.Mechanic.Entity.Roles;
 import com.Project.Mechanic.Entity.Users;
 
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -29,6 +30,7 @@ public interface UserRepository extends JpaRepository<Users, Long> {
             "id AS id, " +
             "email AS email, " +
             "name AS name," +
+            "experience AS experience,"+
             "phone AS phone, " +
             "ST_Y(location::geometry) AS latitude, " +
             "ST_X(location::geometry) AS longitude, " +
@@ -40,5 +42,10 @@ public interface UserRepository extends JpaRepository<Users, Long> {
 List<MechanicDistanceProjection> findNearestMechanicsWithDistance(@Param("lon") double lon, @Param("lat") double lat);
 
 	List<Users> findByApprovalStatus(boolean status);
+	
+	long countByRoles(Roles roles);
+	long countByRolesAndApprovalStatus(Roles roles, Boolean approvalStatus);
+	
+	List<Users> findByRoles(Roles role);
 
 }

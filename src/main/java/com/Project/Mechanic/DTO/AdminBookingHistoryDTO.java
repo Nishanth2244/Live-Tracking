@@ -19,5 +19,10 @@ public class AdminBookingHistoryDTO {
 	private String problem;
 	private BookingStatus status;
 	private String userName;
+	private Double totaAmount;
+	private String billDetails;
+    private Double serviceCharge;
+    private Double partsCost;
+    private Double extraCharges;
 
 }

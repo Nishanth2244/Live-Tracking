@@ -42,14 +42,14 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 	@Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
         registry.addEndpoint("/ws")
-        		.setAllowedOriginPatterns("*")
-        		.withSockJS();
+        		.setAllowedOriginPatterns("*");
     }
 	
 	
 	@Override
     public void configureClientInboundChannel(ChannelRegistration registration) {
         registration.interceptors(new ChannelInterceptor() {
+        	
             @Override
             public Message<?> preSend(Message<?> message, MessageChannel channel) {
                 StompHeaderAccessor accessor = MessageHeaderAccessor.getAccessor(message, StompHeaderAccessor.class);
@@ -75,7 +75,9 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
                                     
                                     if (jwtService.isTokenValid(token, userDetails)) {
                                         UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(
-                                                userDetails, null, userDetails.getAuthorities()
+                                                userDetails, 
+                                                null, 
+                                                userDetails.getAuthorities()
                                         );
                                         
                                         // Token nunchi userId extract chesi session auth ki set chesthunnam

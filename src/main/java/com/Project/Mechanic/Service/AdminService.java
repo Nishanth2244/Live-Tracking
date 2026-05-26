@@ -7,9 +7,12 @@ import org.springframework.stereotype.Service;
 
 import com.Project.Mechanic.DTO.AdminBookingHistoryDTO;
 import com.Project.Mechanic.DTO.AdminBookingHistoryDTO.AdminBookingHistoryDTOBuilder;
+import com.Project.Mechanic.DTO.AdminDashboardDTO;
 import com.Project.Mechanic.DTO.NearbyMechanicResDTO;
+import com.Project.Mechanic.DTO.UserProfileResDTO;
 import com.Project.Mechanic.Entity.Booking;
 import com.Project.Mechanic.Entity.BookingStatus;
+import com.Project.Mechanic.Entity.Roles;
 import com.Project.Mechanic.Entity.Users;
 import com.Project.Mechanic.ExceptionHandler.ResourceNotFoundException;
 import com.Project.Mechanic.Repo.BookingRepository;
@@ -98,8 +101,75 @@ public class AdminService {
 							.status(booking.getStatus())
 							.userName(userName != null ? userName : "Unknown User")
 							.mechanicName(mechanicName != null ? mechanicName : "Unknown Mechanic")
+							.totaAmount(booking.getTotalAmount())
+							.billDetails(booking.getBillingDetails())
+							.serviceCharge(booking.getServiceCharge())
+							.extraCharges(booking.getExtraCharges())
+							.partsCost(booking.getPartsCost())
 							.build();
 				}).collect(Collectors.toList());
+	}
+	
+	
+	
+	public AdminDashboardDTO getDashboardStats() {
+	    log.info("Fetching Admin Dashboard Statistics");
+	    
+	    long usersCount = userRepository.countByRoles(Roles.USER);
+	    long mechanicsCount = userRepository.countByRoles(Roles.MECHANIC);
+	    long pendingMechanics = userRepository.countByRolesAndApprovalStatus(Roles.MECHANIC, false);
+	    
+	    long totalBookings = bookingRepository.count();
+	    Double revenue = bookingRepository.getTotalRevenue(BookingStatus.COMPLETED);
+
+	    return AdminDashboardDTO.builder()
+	            .totalUsers(usersCount)
+	            .totalMechanics(mechanicsCount)
+	            .pendingMechanicApprovals(pendingMechanics)
+	            .totalBookings(totalBookings)
+	            .totalRevenue(revenue)
+	            .build();
+	}
+	
+	
+	public String toggleUserAccess(Long userId, boolean hasAccess) {
+	    Users user = userRepository.findById(userId)
+	            .orElseThrow(() -> new ResourceNotFoundException("User not found to update access"));
+	            
+	    user.setApprovalStatus(hasAccess);
+	    
+	    if(user.getRoles() == Roles.MECHANIC && !hasAccess) {
+	        user.setIsAvailable(false);
+	    }
+	    
+	    userRepository.save(user);
+	    
+	    String action = hasAccess ? "UNBLOCKED" : "BLOCKED";
+	    log.info("User {} has been {} by Admin", user.getEmail(), action);
+	    
+	    return "User account successfully " + action.toLowerCase() + ".";
+	}
+	
+	
+	public List<UserProfileResDTO> getUsersByRole(Roles role) {
+	    List<Users> users = userRepository.findByRoles(role);
+	    
+	    if(users.isEmpty()) {
+	        throw new ResourceNotFoundException("No users found for role: " + role.name());
+	    }
+	    
+	    return users.stream().map(user -> {
+	        UserProfileResDTO dto = new UserProfileResDTO();
+	        dto.setId(user.getId());
+	        dto.setName(user.getName());
+	        dto.setEmail(user.getEmail());
+	        dto.setRole(user.getRoles().name());
+	        dto.setPhone(user.getPhone());
+	        dto.setExperience(user.getExperience());
+	        dto.setIsAvailable(user.getIsAvailable());
+	        dto.setApprovalStatus(user.getApprovalStatus());
+	        return dto;
+	    }).collect(Collectors.toList());
 	}
 
 }

@@ -3,11 +3,17 @@ package com.Project.Mechanic.Service;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import com.Project.Mechanic.DTO.MechanicBookingHistoryDTO;
 import com.Project.Mechanic.DTO.MechanicDistanceProjection;
 import com.Project.Mechanic.DTO.NearbyMechanicResDTO;
+import com.Project.Mechanic.Entity.Booking;
+import com.Project.Mechanic.Entity.BookingStatus;
 import com.Project.Mechanic.Entity.Users;
+import com.Project.Mechanic.ExceptionHandler.ResourceNotFoundException;
+import com.Project.Mechanic.Repo.BookingRepository;
 import com.Project.Mechanic.Repo.UserRepository;
 
 import lombok.AllArgsConstructor;
@@ -17,6 +23,7 @@ import lombok.AllArgsConstructor;
 public class MechanicService {
 	
 	private UserRepository userRepository;
+	private final BookingRepository bookingRepository;
 
 	public List<NearbyMechanicResDTO> searchNearbyMechanics(double userLat, double userLon) {
 	    List<MechanicDistanceProjection> mechanics = userRepository.findNearestMechanicsWithDistance(userLon, userLat);
@@ -29,6 +36,7 @@ public class MechanicService {
 	        dto.setPhoneNo(mechanic.getPhone());
 	        dto.setLatitude(mechanic.getLatitude());
 	        dto.setLongitude(mechanic.getLongitude());
+	        dto.setExp(mechanic.getExperience());
 	        
 	        double distanceInKm = mechanic.getDistance() / 1000.0;
 	        dto.setDistance(Math.round(distanceInKm * 100.0) / 100.0); 
@@ -36,4 +44,33 @@ public class MechanicService {
 	        return dto;
 	    }).collect(Collectors.toList());
 	}
+	
+	
+	
+	public List<MechanicBookingHistoryDTO> getMechanicHistory(Long mechanicId, BookingStatus status, Pageable pageable) {
+		
+        List<Object[]> results = bookingRepository.findMechanicBookingHistory(mechanicId, status, pageable);
+
+        if (results == null || results.isEmpty()) {
+            throw new ResourceNotFoundException("No bookings found with status: " + status.name());
+        }
+
+        return results.stream().map(row -> {
+            Booking booking = (Booking) row[0];
+            String customerName = (String) row[1];
+            String customerPhone = (String) row[2];
+
+            return MechanicBookingHistoryDTO.builder()
+                    .bookingId(booking.getId())
+                    .bookedTime(booking.getCreatedAt())
+                    .problem(booking.getProblem())
+                    .status(booking.getStatus())
+                    .customerName(customerName != null ? customerName : "Unknown User")
+                    .customerPhone(customerPhone != null ? customerPhone : "N/A")
+                    .latitude(booking.getBreakdownLocation() != null ? booking.getBreakdownLocation().getY() : 0.0)
+                    .longitude(booking.getBreakdownLocation() != null ? booking.getBreakdownLocation().getX() : 0.0)
+                    .totalAmount(booking.getTotalAmount())
+                    .build();
+        }).collect(Collectors.toList());
+    }
 }
