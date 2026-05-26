@@ -21,7 +21,6 @@ public class WebSocketEventListener {
     public void handleWebSocketDisconnectListener(SessionDisconnectEvent event) {
         StompHeaderAccessor headerAccessor = StompHeaderAccessor.wrap(event.getMessage());
         String sessionId = headerAccessor.getSessionId();
-        
         log.info("Websocket Disonnected for User. Session ID: {}", sessionId);
     }
 }

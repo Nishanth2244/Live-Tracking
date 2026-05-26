@@ -31,59 +31,56 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 	
 	private final JwtService jwtService;
 	private final CustomUserDetailsService userDetailsService;
-	
-	
+
 	@Override
 	public void configureMessageBroker(MessageBrokerRegistry registry) {
 		registry.enableSimpleBroker("/topic");
 		registry.setApplicationDestinationPrefixes("/app");
 	}
-	
 	@Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
         registry.addEndpoint("/ws")
         		.setAllowedOriginPatterns("*");
     }
-	
-	
+
 	@Override
     public void configureClientInboundChannel(ChannelRegistration registration) {
         registration.interceptors(new ChannelInterceptor() {
-        	
+
             @Override
             public Message<?> preSend(Message<?> message, MessageChannel channel) {
                 StompHeaderAccessor accessor = MessageHeaderAccessor.getAccessor(message, StompHeaderAccessor.class);
 
                 // Ee interceptor prathi STOMP CONNECT frame ki trigger avuthundi
                 if (StompCommand.CONNECT.equals(accessor.getCommand())) {
-                    
+
                     // Frontend nunchi vachina 'Authorization' header ni extract chesthunnam
                     List<String> authHeaders = accessor.getNativeHeader("Authorization");
                     log.info("Token from the Frontend: {}", authHeaders);
 
                     if (authHeaders != null && !authHeaders.isEmpty()) {
                         String bearerToken = authHeaders.get(0);
-                        
+
                         if (bearerToken.startsWith("Bearer ")) {
                             String token = bearerToken.substring(7);
-                            
+
                             try {
                                 String username = jwtService.extractUsername(token);
-                                
+
                                 if (username != null) {
                                     UserDetails userDetails = userDetailsService.loadUserByUsername(username);
-                                    
+
                                     if (jwtService.isTokenValid(token, userDetails)) {
                                         UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(
-                                                userDetails, 
-                                                null, 
+                                                userDetails,
+                                                null,
                                                 userDetails.getAuthorities()
                                         );
-                                        
+
                                         // Token nunchi userId extract chesi session auth ki set chesthunnam
                                         Long userId = jwtService.extractUserId(token);
                                         auth.setDetails(userId);
-                                        
+
                                         // WebSocket session ki user ni bind chesthunnam
                                         accessor.setUser(auth);
                                         log.info("WebSocket connected for User ID: {}", userId);
@@ -96,8 +93,8 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
                     }
                 }
                 return message;
+               }
             }
-        });
+        );
     }
-
 }

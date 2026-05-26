@@ -32,6 +32,7 @@ public class Users {
 	private Boolean approvalStatus;
 	
 	private String phone;
+
     private Boolean isAvailable;
     
     @Column(columnDefinition = "geometry(Point, 4326)") // 4326 is standard GPS coordinate system (WGS 84)
