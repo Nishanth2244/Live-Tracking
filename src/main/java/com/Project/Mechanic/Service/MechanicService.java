@@ -3,6 +3,7 @@ package com.Project.Mechanic.Service;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import com.Project.Mechanic.DTO.MechanicDashboardDTO;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
@@ -45,8 +46,7 @@ public class MechanicService {
 	    }).collect(Collectors.toList());
 	}
 	
-	
-	
+
 	public List<MechanicBookingHistoryDTO> getMechanicHistory(Long mechanicId, BookingStatus status, Pageable pageable) {
 		
         List<Object[]> results = bookingRepository.findMechanicBookingHistory(mechanicId, status, pageable);
@@ -72,5 +72,49 @@ public class MechanicService {
                     .totalAmount(booking.getTotalAmount())
                     .build();
         }).collect(Collectors.toList());
+    }
+    public MechanicDashboardDTO getMechanicDashboard(
+            Long mechanicId
+    ) {
+
+        Long totalJobs =
+                bookingRepository.countByMechanicId(
+                        mechanicId
+                );
+
+        Long completedJobs =
+                bookingRepository
+                        .countByMechanicIdAndStatus(
+                                mechanicId,
+                                BookingStatus.COMPLETED
+                        );
+
+        Long acceptedJobs =
+                bookingRepository
+                        .countByMechanicIdAndStatus(
+                                mechanicId,
+                                BookingStatus.ACCEPTED
+                        );
+
+        Long pendingJobs =
+                bookingRepository
+                        .countByMechanicIdAndStatus(
+                                mechanicId,
+                                BookingStatus.PENDING
+                        );
+        Long rejectedJobs =
+                bookingRepository
+                        .countByMechanicIdAndStatus(
+                                mechanicId,
+                                BookingStatus.REJECTED
+                        );
+
+        return MechanicDashboardDTO.builder()
+                .totalJobs(totalJobs)
+                .completedJobs(completedJobs)
+                .acceptedJobs(acceptedJobs)
+                .pendingJobs(pendingJobs)
+                .rejectedJobs(rejectedJobs)
+                .build();
     }
 }

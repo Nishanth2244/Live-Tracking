@@ -2,8 +2,10 @@ package com.Project.Mechanic.Controller;
 
 import java.util.List;
 
+import com.Project.Mechanic.DTO.MechanicDashboardDTO;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -46,5 +48,12 @@ public class MechanicController {
         Pageable pageable = PageRequest.of(page, size);
         
         return mechanicService.getMechanicHistory(mechanicId, status, pageable);
+    }
+    @GetMapping("/dashboard")
+    public ResponseEntity<MechanicDashboardDTO> getDashboard(@RequestHeader("Authorization") String token) {
+        Long mechanicId = jwtService.extractUserId(token.substring(7));
+        return ResponseEntity.ok(
+                mechanicService.getMechanicDashboard(mechanicId)
+        );
     }
 }

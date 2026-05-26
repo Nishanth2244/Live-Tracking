@@ -40,7 +40,13 @@ public class BookingController {
 		Long mechanicId = jwtService.extractUserId(token.substring(7));
 		return bookingService.accept(bookingId, mechanicId);
 	}
-	
+    @PatchMapping("/reject/{bookingId}")
+    public String rejectBooking(@PathVariable Long bookingId,
+                                @RequestHeader("Authorization") String token) {
+
+        Long mechanicId = jwtService.extractUserId(token.substring(7));
+        return bookingService.reject(bookingId, mechanicId);
+    }
 
 	@PostMapping("/generate-bill")
 	public String generateBill(@RequestBody BillRequestDTO dto, 

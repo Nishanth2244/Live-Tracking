@@ -111,7 +111,63 @@ public class BookingService {
 
 		return "Booking Accepted! You are now assigned to this request.";
 	}
-	
+    public String reject(Long bookingId, Long mechanicId) {
+
+        Booking booking = bookingRepository.findById(bookingId)
+                .orElseThrow(() ->
+                        new RuntimeException(
+                                "Booking Id not found to reject"
+                        )
+                );
+
+        // Check booking status
+        if (booking.getStatus() != BookingStatus.PENDING) {
+
+            throw new RuntimeException(
+                    "Booking already accepted or completed"
+            );
+        }
+
+        // Check mechanic authorization
+        if (!booking.getMechanicId().equals(mechanicId)) {
+
+            throw new RuntimeException(
+                    "You are not authorized to reject this booking."
+            );
+        }
+
+        // Update booking status
+        booking.setStatus(BookingStatus.REJECTED);
+
+        bookingRepository.save(booking);
+
+
+        // Send realtime notification to user
+        BookingNotificationDTO dto =
+                BookingNotificationDTO.builder()
+                        .bookingId(booking.getId())
+                        .userId(booking.getUserId())
+                        .problem("Your booking request was rejected")
+                        .mechanicId(mechanicId)
+                        .status(BookingStatus.REJECTED.name())
+                        .build();
+
+        String userDestination =
+                "/topic/user/reject/" +
+                        booking.getUserId();
+
+        messagingTemplate.convertAndSend(
+                userDestination,
+                dto
+        );
+
+        log.info(
+                "Booking Rejection Notification sent to User via {}",
+                userDestination
+        );
+
+        return "Booking Rejected Successfully!";
+    }
 	
 	
 	@Transactional
@@ -123,8 +179,7 @@ public class BookingService {
 		if(!booking.getMechanicId().equals(mechanicId)) {
 			throw new UnauthorizedException("You are not authorized to generate bill");
 		}
-		
-		
+
 		// Calculation & Save
 	    double total = (dto.getServiceCharge() != null ? dto.getServiceCharge() : 0) +
 	                   (dto.getPartsCost() != null ? dto.getPartsCost() : 0) +
@@ -135,7 +190,6 @@ public class BookingService {
 	    booking.setExtraCharges(dto.getExtraCharges());
 	    booking.setBillingDetails(dto.getBillingDetails());
 	    booking.setTotalAmount(total);
-	    
 	    bookingRepository.save(booking);
 	    
 	    BookingNotificationDTO notification = BookingNotificationDTO.builder()
