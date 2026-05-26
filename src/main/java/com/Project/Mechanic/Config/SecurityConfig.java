@@ -70,9 +70,7 @@ public class SecurityConfig {
         http
             .csrf(csrf -> csrf.disable())
     		.cors(cors -> cors.configurationSource(corsConfigurationSource()))
-            .authorizeHttpRequests(auth -> auth
-            		.requestMatchers("/ws/**", "/ws").permitAll()
-            		
+            .authorizeHttpRequests(auth -> auth            		
                 .anyRequest().permitAll()
             )
             .sessionManagement(session -> session
