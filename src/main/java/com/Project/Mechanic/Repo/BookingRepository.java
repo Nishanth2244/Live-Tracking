@@ -2,6 +2,7 @@ package com.Project.Mechanic.Repo;
 
 import java.util.List;
 
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -16,7 +17,7 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
 
 	List<Booking> findByStatus(BookingStatus status);
 
-	
+    Page<Booking> findByStatus(BookingStatus status, Pageable pageable);
 //   Booking history for ADMIN
 	@Query("SELECT b, u.name, m.name FROM Booking b " +
 	           "LEFT JOIN Users u ON b.userId = u.id " +
@@ -43,4 +44,36 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
 	    		       "WHERE b.mechanicId = :mechanicId AND b.status = :status " +
 	    		       "ORDER BY b.createdAt DESC")
 	    		List<Object[]> findMechanicBookingHistory(@Param("mechanicId") Long mechanicId, @Param("status") BookingStatus status, Pageable pageable);
+    @Query("""
+            SELECT COALESCE(SUM(b.partsCost),0)
+            FROM Booking b
+            """)
+    Double getTotalExpenses();
+
+    @Query("""
+            SELECT COALESCE(SUM(b.totalAmount - b.partsCost),0)
+            FROM Booking b
+            """)
+    Double getTotalProfit();
+    @Query(value = """
+    SELECT
+        TO_CHAR(created_at, 'Day') AS day,
+        COALESCE(SUM(total_amount),0) AS sales
+    FROM booking
+    WHERE created_at >= CURRENT_DATE - INTERVAL '6 days'
+    GROUP BY DATE(created_at), TO_CHAR(created_at, 'Day')
+    ORDER BY DATE(created_at)
+    """, nativeQuery = true)
+    List<Object[]> getWeeklySales();
+    @Query(value = """
+    SELECT 
+        TO_CHAR(created_at, 'Day') AS day,
+        COALESCE(SUM(total_amount - parts_cost),0) AS profit,
+        COALESCE(SUM(parts_cost),0) AS expense
+    FROM booking
+    WHERE created_at >= CURRENT_DATE - INTERVAL '6 days'
+    GROUP BY DATE(created_at), TO_CHAR(created_at, 'Day')
+    ORDER BY DATE(created_at)
+    """, nativeQuery = true)
+    List<Object[]> getWeeklyFinance();
 }

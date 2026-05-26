@@ -171,5 +171,24 @@ public class AdminService {
 	        return dto;
 	    }).collect(Collectors.toList());
 	}
+    public List<UserProfileResDTO> getAllMechanics(){
+        List<Users> mechUsers=userRepository.findByRoles(Roles.MECHANIC);
+        if(mechUsers.isEmpty()) {
+            throw new ResourceNotFoundException("No Mechanic user Found");
+        }
+        return mechUsers.stream().map(user -> {
+            UserProfileResDTO dto = new UserProfileResDTO();
+            dto.setId(user.getId());
+            dto.setName(user.getName());
+            dto.setEmail(user.getEmail());
+            dto.setRole(user.getRoles().name());
+            dto.setPhone(user.getPhone());
+            dto.setExperience(user.getExperience());
+            dto.setIsAvailable(user.getIsAvailable());
+            dto.setApprovalStatus(user.getApprovalStatus());
+            return dto;
+        }).collect(Collectors.toList());
+
+    }
 
 }

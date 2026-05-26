@@ -1,15 +1,17 @@
 package com.Project.Mechanic.Service;
 
+import com.Project.Mechanic.DTO.*;
 import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.GeometryFactory;
 import org.locationtech.jts.geom.Point;
 import org.locationtech.jts.geom.PrecisionModel;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 
-import com.Project.Mechanic.DTO.BillRequestDTO;
-import com.Project.Mechanic.DTO.BookingNotificationDTO;
-import com.Project.Mechanic.DTO.BookingRequestDTO;
 import com.Project.Mechanic.Entity.Booking;
 import com.Project.Mechanic.Entity.BookingStatus;
 import com.Project.Mechanic.Entity.Users;
@@ -22,6 +24,9 @@ import com.Project.Mechanic.Repo.UserRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -188,6 +193,169 @@ public class BookingService {
 	    log.info("Service completed sent notification to User");
 	    return "Booking Completed! You are now available for new requests.";
 	}
-	
 
+    public List<BookingDetailsDTO> upcomingBookings(int page,int size) {
+        Pageable pageable= PageRequest.of(page,size,Sort.by("createdAt").descending());
+        Page<Booking> bookings =
+                bookingRepository.findByStatus(BookingStatus.PENDING,pageable);
+
+        return bookings.stream().map(b -> {
+
+            // Fetch user using userId
+            Users user = userRepository.findById(b.getUserId())
+                    .orElse(null);
+
+            Point location = b.getBreakdownLocation();
+
+            return BookingDetailsDTO.builder()
+                    .id(b.getId())
+                    .createdAt(b.getCreatedAt())
+                    .problem(b.getProblem())
+                    .status(b.getStatus())
+
+                    .customerName(
+                            user != null ? user.getName() : "Unknown"
+                    )
+
+                    .customerPhone(
+                            user != null ? user.getPhone() : "No Phone"
+                    )
+
+                    .latitude(location.getY())
+                    .longitude(location.getX())
+
+                    .build();
+
+        }).collect(Collectors.toList());
+    }
+    public List<BookingDetailsDTO> completedBookings(int page,int size) {
+        Pageable pageable= PageRequest.of(page,size,Sort.by("createdAt").descending());
+        Page<Booking> bookings =
+                bookingRepository.findByStatus(BookingStatus.COMPLETED,pageable);
+
+        return bookings.stream().map(b -> {
+
+            // Fetch user using userId
+            Users user = userRepository.findById(b.getUserId())
+                    .orElse(null);
+            Point location = b.getBreakdownLocation();
+            return BookingDetailsDTO.builder()
+                    .id(b.getId())
+                    .createdAt(b.getCreatedAt())
+                    .problem(b.getProblem())
+                    .status(b.getStatus())
+                    .customerName(
+                            user != null ? user.getName() : "Unknown"
+                    )
+                    .customerPhone(
+                            user != null ? user.getPhone() : "Unknown"
+                    )
+                    .latitude(location.getY())
+                    .longitude(location.getX())
+                    .billingDetails(b.getBillingDetails())
+                    .totalAmount(b.getTotalAmount())
+                    .build();
+
+        }).collect(Collectors.toList());
+    }
+    public DashboardDTO getDashboardData() {
+
+        Double expenses = bookingRepository.getTotalExpenses();
+
+        Double profit = bookingRepository.getTotalProfit();
+
+        return DashboardDTO.builder()
+                .expenses(expenses)
+                .profit(profit)
+                .build();
+    }
+    public List<WeeklySalesDTO> getWeeklySales() {
+
+        List<Object[]> results = bookingRepository.getWeeklySales();
+
+        Map<String, Double> salesMap = new HashMap<>();
+
+        for (Object[] obj : results) {
+
+            String day = obj[0].toString().trim();
+
+            Double sales =((Number) obj[1]).doubleValue();
+
+            salesMap.put(day, sales);
+        }
+        List<String> days = Arrays.asList(
+                "Monday",
+                "Tuesday",
+                "Wednesday",
+                "Thursday",
+                "Friday",
+                "Saturday",
+                "Sunday"
+        );
+
+        // Build final response
+        List<WeeklySalesDTO> response = new ArrayList<>();
+
+        for (String day : days) {
+
+            response.add(
+                    new WeeklySalesDTO(
+                            day,
+                            salesMap.getOrDefault(day, 0.0)
+                    )
+            );
+        }
+        return response;
+    }
+    public List<WeeklyFinanceDTO> getWeeklyFinance() {
+
+        List<Object[]> results =
+                bookingRepository.getWeeklyFinance();
+
+        Map<String, Double> profitMap = new HashMap<>();
+        Map<String, Double> expenseMap = new HashMap<>();
+
+        // Store DB results
+        for (Object[] obj : results) {
+
+            String day = obj[0].toString().trim();
+
+            Double profit =
+                    ((Number) obj[1]).doubleValue();
+
+            Double expense =
+                    ((Number) obj[2]).doubleValue();
+
+            profitMap.put(day, profit);
+            expenseMap.put(day, expense);
+        }
+
+        // All week days
+        List<String> days = Arrays.asList(
+                "Monday",
+                "Tuesday",
+                "Wednesday",
+                "Thursday",
+                "Friday",
+                "Saturday",
+                "Sunday"
+        );
+
+        // Final response
+        List<WeeklyFinanceDTO> response =
+                new ArrayList<>();
+
+        for (String day : days) {
+
+            response.add(
+                    new WeeklyFinanceDTO(
+                            day,
+                            profitMap.getOrDefault(day, 0.0),
+                            expenseMap.getOrDefault(day, 0.0)
+                    )
+            );
+        }
+
+        return response;
+    }
 }
