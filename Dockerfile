@@ -1,8 +1,8 @@
-# Stage 1: Build the application
-FROM maven:3.9.5-eclipse-temurin-17 AS build
+# Stage 1: Build the application (Java 21)
+FROM maven:3.9.9-eclipse-temurin-21 AS build
 WORKDIR /app
 
-# Copy the Maven project files
+# Copy Maven project files
 COPY pom.xml .
 COPY mvnw .
 COPY .mvn .mvn
@@ -10,19 +10,16 @@ COPY .mvn .mvn
 # Download dependencies (cached unless pom.xml changes)
 RUN mvn dependency:go-offline -B
 
-# Copy the source code and build the JAR
+# Copy source and build JAR
 COPY src src
 RUN mvn clean package -DskipTests
 
-# Stage 2: Run the application
-FROM eclipse-temurin:17-jre-jammy
+# Stage 2: Run the application (Java 21 runtime)
+FROM eclipse-temurin:21-jre-jammy
 WORKDIR /app
 
-# Copy the built JAR from the build stage
+# Copy built JAR from build stage
 COPY --from=build /app/target/*.jar app.jar
 
-# Expose the port your app runs on
 EXPOSE 8080
-
-# Run the JAR
 ENTRYPOINT ["java", "-jar", "app.jar"]
