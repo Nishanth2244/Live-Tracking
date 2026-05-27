@@ -2,6 +2,8 @@ package com.Project.Mechanic.Controller;
 
 import java.util.List;
 
+import com.Project.Mechanic.DTO.*;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -11,11 +13,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.Project.Mechanic.DTO.ProfileUpdateDTO;
-import com.Project.Mechanic.DTO.TicketRequestDTO;
-import com.Project.Mechanic.DTO.UserBookingHistoryDTO;
-import com.Project.Mechanic.DTO.UserProfileResDTO;
-import com.Project.Mechanic.DTO.UserTicketViewDTO;
 import com.Project.Mechanic.Entity.BookingStatus;
 import com.Project.Mechanic.Service.JwtService;
 import com.Project.Mechanic.Service.SupportService;
@@ -55,8 +52,7 @@ public class UserController {
         userService.updateProfile(userId, profileUpdateDTO);
         return "Profile Updated Succesfully";
 	}
-	
-	
+
 	@GetMapping("/history")
 	public List<UserBookingHistoryDTO> getUserBookingHistory(
 	        @RequestParam BookingStatus status,
@@ -82,8 +78,13 @@ public class UserController {
         Long userId = jwtService.extractUserId(token.substring(7));
         return supportService.getUserTickets(userId);
     }
-	
-	
-
+    @GetMapping("/dashboard")
+    public ResponseEntity<UserDashboardDTO> getDashboard(
+            @RequestHeader("Authorization") String token) {
+        Long userId = jwtService.extractUserId(token.substring(7));
+        return ResponseEntity.ok(
+                userService.getUserDashboard(userId)
+        );
+    }
 }
 

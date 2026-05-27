@@ -3,6 +3,7 @@ package com.Project.Mechanic.Service;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import com.Project.Mechanic.DTO.UserDashboardDTO;
 import org.springframework.stereotype.Service;
 
 import com.Project.Mechanic.DTO.ProfileUpdateDTO;
@@ -94,5 +95,43 @@ public class UserService {
 	                .build();
 	    }).collect(Collectors.toList());
 	}
+    public UserDashboardDTO getUserDashboard(
+            Long userId
+    ) {
+
+        Long totalBookings =
+                bookingRepository.countByUserId(
+                        userId
+                );
+
+        Long pendingBookings =
+                bookingRepository
+                        .countByUserIdAndStatus(
+                                userId,
+                                BookingStatus.PENDING
+                        );
+
+        Long acceptedBookings =
+                bookingRepository
+                        .countByUserIdAndStatus(
+                                userId,
+                                BookingStatus.ACCEPTED
+                        );
+
+        Long completedBookings =
+                bookingRepository
+                        .countByUserIdAndStatus(
+                                userId,
+                                BookingStatus.COMPLETED
+                        );
+
+        return UserDashboardDTO.builder()
+                .totalBookings(totalBookings)
+                .pendingBookings(pendingBookings)
+                .acceptedBookings(acceptedBookings)
+                .completedBookings(completedBookings)
+                .build();
+    }
+
 
 }

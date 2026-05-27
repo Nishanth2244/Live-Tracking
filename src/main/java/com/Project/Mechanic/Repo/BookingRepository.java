@@ -93,4 +93,12 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
     ORDER BY DATE(created_at)
     """, nativeQuery = true)
     List<Object[]> getWeeklyJobs(Long mechanicId);
+
+    Long countByUserId(Long userId);
+
+    Long countByUserIdAndStatus(
+            Long userId,
+            BookingStatus status
+    );
+
 }

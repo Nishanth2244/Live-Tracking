@@ -37,9 +37,6 @@ public class AdminInitializer implements CommandLineRunner {
 		}
 		
 		log.info("admin data loaded");
-
-
-		
 	}
 
 }
