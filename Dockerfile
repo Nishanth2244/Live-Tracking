@@ -13,7 +13,7 @@ RUN mvn dependency:go-offline -B
 # Copy source and build JAR
 COPY src src
 RUN mvn clean package -DskipTests
-
+ 
 # Stage 2: Run the application (Java 21 runtime)
 FROM eclipse-temurin:21-jre-jammy
 WORKDIR /app

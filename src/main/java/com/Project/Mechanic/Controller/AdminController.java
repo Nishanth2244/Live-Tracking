@@ -29,7 +29,6 @@ public class AdminController {
 	
 	private final AdminService adminService;
 	private final SupportService supportService;
-    private final JwtService jwtService;
 	
 	@GetMapping("/mechanics")
 	public List<NearbyMechanicResDTO> getPending(@RequestParam boolean status){
