@@ -3,6 +3,7 @@ package com.Project.Mechanic.Controller;
 import java.util.List;
 
 import com.Project.Mechanic.DTO.MechanicDashboardDTO;
+import com.Project.Mechanic.DTO.WeeklyJobsDTO;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
@@ -54,6 +55,14 @@ public class MechanicController {
         Long mechanicId = jwtService.extractUserId(token.substring(7));
         return ResponseEntity.ok(
                 mechanicService.getMechanicDashboard(mechanicId)
+        );
+    }
+    @GetMapping("/weekly-jobs")
+    public ResponseEntity<List<WeeklyJobsDTO>> getWeeklyJobs(@RequestHeader("Authorization") String token) {
+        Long mechanicId = jwtService.extractUserId(token.substring(7));
+        return ResponseEntity.ok(
+                mechanicService
+                        .getWeeklyJobs(mechanicId)
         );
     }
 }

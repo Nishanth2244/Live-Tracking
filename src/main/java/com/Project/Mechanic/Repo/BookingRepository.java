@@ -82,4 +82,15 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
             Long mechanicId,
             BookingStatus status
     );
+    @Query(value = """
+    SELECT 
+        TO_CHAR(created_at, 'Day') AS day,
+        COUNT(id) AS totalJobs
+    FROM booking
+    WHERE mechanic_id = :mechanicId
+    AND created_at >= CURRENT_DATE - INTERVAL '6 days'
+    GROUP BY DATE(created_at), TO_CHAR(created_at, 'Day')
+    ORDER BY DATE(created_at)
+    """, nativeQuery = true)
+    List<Object[]> getWeeklyJobs(Long mechanicId);
 }

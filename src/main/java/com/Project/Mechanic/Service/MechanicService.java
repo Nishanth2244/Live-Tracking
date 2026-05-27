@@ -1,15 +1,12 @@
 package com.Project.Mechanic.Service;
 
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
-import com.Project.Mechanic.DTO.MechanicDashboardDTO;
+import com.Project.Mechanic.DTO.*;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
-import com.Project.Mechanic.DTO.MechanicBookingHistoryDTO;
-import com.Project.Mechanic.DTO.MechanicDistanceProjection;
-import com.Project.Mechanic.DTO.NearbyMechanicResDTO;
 import com.Project.Mechanic.Entity.Booking;
 import com.Project.Mechanic.Entity.BookingStatus;
 import com.Project.Mechanic.Entity.Users;
@@ -116,5 +113,55 @@ public class MechanicService {
                 .pendingJobs(pendingJobs)
                 .rejectedJobs(rejectedJobs)
                 .build();
+    }
+    public List<WeeklyJobsDTO> getWeeklyJobs(
+            Long mechanicId
+    ) {
+
+        List<Object[]> results =
+                bookingRepository.getWeeklyJobs(
+                        mechanicId
+                );
+
+        Map<String, Long> jobsMap =
+                new HashMap<>();
+
+        // Store database values
+        for (Object[] obj : results) {
+
+            String day =
+                    obj[0].toString().trim();
+
+            Long jobs =
+                    ((Number) obj[1]).longValue();
+
+            jobsMap.put(day, jobs);
+        }
+
+        // All days
+        List<String> days = Arrays.asList(
+                "Monday",
+                "Tuesday",
+                "Wednesday",
+                "Thursday",
+                "Friday",
+                "Saturday",
+                "Sunday"
+        );
+
+        List<WeeklyJobsDTO> response =
+                new ArrayList<>();
+
+        for (String day : days) {
+
+            response.add(
+                    new WeeklyJobsDTO(
+                            day,
+                            jobsMap.getOrDefault(day, 0L)
+                    )
+            );
+        }
+
+        return response;
     }
 }
